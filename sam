@@ -1,0 +1,39 @@
+from fastapi import FastAPI, HTTPException, Request
+from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+import requests
+
+app = FastAPI(title="InstantPay Technologies", docs_url="/api/docs", openapi_url="/api")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # You can change "*" to a list of allowed origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/pay")
+async def test():
+    return {"message": "Hello World"}
+
+@app.post("/pay")
+async def pay(request: Request):
+    # Assuming the logic to calculate recharge_amountFHB3a2LpNUO6KrqFitIOdD is defined somewhere
+    payload = await request.json()
+    print(payload)
+
+    headers = {
+        'api_key': ''
+    }
+    
+    try:
+        response = requests.post(
+            "https://api.dingconnect.com/api/V1/SendTransfer",
+            json=payload,
+            headers=headers
+        )
+        response.raise_for_status()  # Raise an exception for non-2xx responses
+        return response.json()  # Return the response data
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=str(e))
